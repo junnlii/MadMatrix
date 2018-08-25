@@ -7,16 +7,16 @@
 
 double offdiagonalMM(int, NPU, int, NPU,vect3D);
 
-void MadEng(Xtal FirstModel, double convergence)
+void MadEng(Xtal *FirstModel, double convergence)
 {
 	system("cls");
 	std::cout << "\n";
-	std::cout << "Set up the polyhedral structure of the first crystal model \n";
-	std::cout << "Input the control file: \n";
+	//std::cout << "Set up the polyhedral structure of the first crystal model \n";
+	//std::cout << "Input the control file: \n";
 	
 	double one = 1.0;
 		
-	int mMD = FirstModel.getNocc();		//the dimension of MadMat: mMD
+	int mMD = FirstModel->getNocc();		//the dimension of MadMat: mMD
 	int totalME = mMD*(mMD + 1) / 2;
 	double *madMat = new double[totalME];
 	double *preMat = new double[totalME];
@@ -41,34 +41,34 @@ void MadEng(Xtal FirstModel, double convergence)
 	for (int i = 0;i < mMD;i++) {
 		
 		diaElemIndex = i*mMD - i*(i - 1) / 2;
-		centerID= FirstModel.occNPU[i].getCenterID();
-		centerCoord = FirstModel.getCoord(centerID);
-		temA = FirstModel.getAA();
-		temB = FirstModel.getBB();
-		temC = FirstModel.getCC();
+		centerID= FirstModel->occNPU[i].getCenterID();
+		centerCoord = FirstModel->getCoord(centerID);
+		temA = FirstModel->getAA();
+		temB = FirstModel->getBB();
+		temC = FirstModel->getCC();
 		centerPos = vect3DPlusScale(centerCoord.getX(), temA,
 			centerCoord.getY(), temB);
 		centerPos = vect3DPlusScale(one, centerPos,
 			centerCoord.getZ(),temC );
 
-		FirstModel.occNPU[i].setCPos(centerPos);				//store center position for later use
+		FirstModel->occNPU[i].setCPos(centerPos);				//store center position for later use
 
-		numVertice = FirstModel.occNPU[i].getNumVertice();
+		numVertice = FirstModel->occNPU[i].getNumVertice();
 	
 		verticeCoord = new vect3D[numVertice];
 		verticePos = new vect3D[numVertice];
 	
 		for (int j = 0;j < numVertice;j++) {
-			verticeCoord[j] = FirstModel.occNPU[i].getVerticePos()[j];
-			temA = FirstModel.getAA();
-			temB = FirstModel.getBB();
-			temC = FirstModel.getCC();
+			verticeCoord[j] = FirstModel->occNPU[i].getVerticePos()[j];
+			temA = FirstModel->getAA();
+			temB = FirstModel->getBB();
+			temC = FirstModel->getCC();
 			verticePos[j] = vect3DPlusScale(verticeCoord[j].getX(), temA,
 				verticeCoord[j].getY(), temB);
 			verticePos[j] = vect3DPlusScale(one, verticePos[j],
 				verticeCoord[j].getZ(), temC);
 
-			FirstModel.occNPU[i].setVPos(j, verticePos[j]);					//store vertice postions for each NPU for later use
+			FirstModel->occNPU[i].setVPos(j, verticePos[j]);					//store vertice postions for each NPU for later use
 
 			madMat[diaElemIndex] += -2.0/ vect3Dlength(centerPos, verticePos[j])/double(numVertice);
 			if (j > 0 & numVertice > 1) {
@@ -90,7 +90,7 @@ void MadEng(Xtal FirstModel, double convergence)
 			offDiaInd = i*mMD - i*(i - 1) / 2;
 			for (int j = i + 1;j < mMD;j++) {
 				offDiaInd += 1;
-				madMat[offDiaInd] += offdiagonalMM(mMD, FirstModel.occNPU[i], mMD, FirstModel.occNPU[j], zero);
+				madMat[offDiaInd] += offdiagonalMM(mMD, FirstModel->occNPU[i], mMD, FirstModel->occNPU[j], zero);
 	
 			}
 		}
@@ -126,9 +126,9 @@ void MadEng(Xtal FirstModel, double convergence)
 			for (int j = -it;j < it + 1;j++) {
 				for (int k = -it;k < it + 1;k++) {
 					if (abs(i) > (it - 1) | abs(j) > (it - 1) | abs(k) > (it - 1)) {
-						temA = FirstModel.getAA();
-						temB = FirstModel.getBB();
-						temC = FirstModel.getCC();
+						temA = FirstModel->getAA();
+						temB = FirstModel->getBB();
+						temC = FirstModel->getCC();
 							latVec = vect3DPlusScale(double(i), temA,
 								double(j), temB);
 							latVec = vect3DPlusScale(one, latVec,
@@ -136,7 +136,7 @@ void MadEng(Xtal FirstModel, double convergence)
 							for (int ic = 0;ic < mMD;ic++) {					//index for NPUs in center cell
 								id = ic*mMD - ic*(ic - 1) / 2;
 								for (int il = ic;il < mMD;il++) {
-									madMat[id] += offdiagonalMM(mMD, FirstModel.occNPU[ic], mMD, FirstModel.occNPU[il], latVec);
+									madMat[id] += offdiagonalMM(mMD, FirstModel->occNPU[ic], mMD, FirstModel->occNPU[il], latVec);
 									id += 1;
 								}
 							}
@@ -184,9 +184,9 @@ void MadEng(Xtal FirstModel, double convergence)
 	//check the regular Madelung energy and constant
 	for (int i = 0;i < mMD;i++) {
 		id = i*mMD - i*(i - 1) / 2;
-		chargeI = FirstModel.occNPU[i].getValence();
+		chargeI = FirstModel->occNPU[i].getValence();
 		for (int j = 0;j < mMD;j++) {
-			chargeJ = FirstModel.occNPU[j].getValence();
+			chargeJ = FirstModel->occNPU[j].getValence();
 			if (i> j) {
 				it= j*mMD - j*(j - 1)/2 + i-j;
 				madEnergy += chargeI*madMat[it]*chargeJ/2.0;
@@ -261,7 +261,7 @@ for (int j = 0; j < aVer; j++) {
 }
 
 // calculate cationic nearest nighbor list
-void createNPUs(Xtal first) {
+void createNPUs(Xtal *first) {
 	std::cout << "To create a set of NPUs, a criteria needed\n";
 	std::cout << "Please prepare a NPU paramenter file: NPUpar.txt\n";
 	std::cout << "		1st line:  total NPU number  \n";
@@ -280,20 +280,20 @@ void createNPUs(Xtal first) {
 	double *val, *rang;
 	double NNx[maxNPU], NNy[maxNPU], NNz[maxNPU];
 
-	int totalAtm = first.getNum();
+	int totalAtm = first->getNum();
 	std::cout << "total atoms: " << totalAtm << "\n";
 	vect3D *pCoord = new vect3D[totalAtm];
 	for (int i = 0; i < totalAtm; i++) {
-		pCoord[i] = first.getCoord(i);
+		pCoord[i] = first->getCoord(i);
 		pCoord[i].vect3DPrint();
 	}
 
 	int nx = 1, ny = 1, nz = 1;
 
 	vect3D aa, bb, cc;
-	aa = first.getAA();
-	bb = first.getBB();
-	cc = first.getCC();
+	aa = first->getAA();
+	bb = first->getBB();
+	cc = first->getCC();
 	int expandCell = totalAtm * (2 * nx + 1)*(2 * ny + 1)*(2 * nz + 1);
 	vect3D *expCoord = new vect3D[expandCell];
 	std::cout << "expanding cells: " << expandCell << "\n";
@@ -337,7 +337,7 @@ void createNPUs(Xtal first) {
 			ofstream myOutput("NPU.list");
 			ifstream myInput("NPUpar.txt");
 			myInput >> totalNpus;
-			myOutput << totalNpus <<" "<< totalNpus <<" "<< 0 << "\n";
+			myOutput << totalNpus <<"  \n";
 
 			idx = new int[totalNpus];
 			val = new double[totalNpus];
@@ -394,8 +394,6 @@ void createNPUs(Xtal first) {
 		std::cout << " if good, enter 1; need to modify NPUpar.txt, enter 0\n";
 			std::cin >> iPass;
 			if (iPass == 1) { setNPU = true; 
-			std::cout<<" the NPU.list has been created, remember to go back <main menu> option 2 \n";
-			std::cout << "	then to choose 1 to load this NPU list before calculation Madelung matrix\n";
 			}
 			else
 			{

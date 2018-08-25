@@ -1,20 +1,23 @@
 #include <iostream>
 #include <string>
 #include "Title.h"
+#include "DataStructure.h"
 #include "Xtal.h"
 
 
-void createNPUs(Xtal);
-void MadEng(Xtal, double);		//Module: Regular Madelung Energy Calculation 
+void createNPUs(Xtal*);
+void MadEng(Xtal*, double);		//Module: Regular Madelung Energy Calculation 
 
 double convergence = 0.0001;
 
 int main() {
 	License();
 	Disclaimer();
-	Xtal FirstModel;
+	Xtal *FirstModel;
+	FirstModel = new Xtal;
 	int funcOptions;
-	
+	std::string fileName;
+
 	char confirm='N';
 	std::string aString = "Welcome to Madelung lattice energy calculation";
 	
@@ -27,8 +30,11 @@ int main() {
 		switch (funcOptions) {
 		case 1:
 			std::cout << "Read in a VASP POSCAR\n";
-			FirstModel.LoadingXtal();
-			FirstModel.PrintXtal();
+			fileName = "POSCAR";
+			
+			poscarLoad(fileName, FirstModel);
+			//FirstModel.LoadingXtal();
+			FirstModel->PrintXtal();
 			
 			break;
 		case 2:
@@ -44,7 +50,7 @@ int main() {
 				std::cout << " create a NPU list\n";
 				createNPUs(FirstModel);
 			}
-			FirstModel.LoadNPUList();
+			FirstModel->LoadNPUList();
 			break;
 		case 3:
 			std::cout << "Calculate Madelung matrix\n";

@@ -2,49 +2,21 @@
 #include <string>
 #include "DataStructure.h"
 #include <locale> 
+//#include "Xtal.h"
+#include <fstream>
+#include <vector>
+#include <sstream>
 
 
-void peekWordinString(string const inString, int *Words)
-{
-	std::locale loc;
-	bool turnon = false;
-	*Words = 0;
-	
-	char c;
-	for (int i = 0; i < inString.length(); ++i)
-	{
-		c = inString[i];
-		if (std::isalpha(c, loc) && !turnon) {
-			turnon = true; (*Words)++;
-		}
-		else
-		{
-			if (!std::isalpha(c, loc)) turnon = false;
-		}
+double normalizeD6(double tem) {
+	while (tem > 1.0) {
+		tem--;
 	}
-}
-
-void loadArrayinString(string const inString, string element[])			//white space needed for the last element
-{
-	bool turnon = false;
-	std::locale loc;
-	int id = 0;
-	char c;
-	string sdum = "";
-	for (int i = 0; i<inString.length(); ++i)
-	{
-		c = inString[i];
-		if (std::isalpha(c, loc) && !turnon) {
-			turnon = true; sdum += c; id++;
-		}
-		else
-		{
-			if (std::isalpha(c, loc)) { sdum += c; }
-			else if (!std::isalpha(c, loc) && turnon) {
-				element[id - 1] = sdum; sdum = ""; turnon = false;
-			}
-		}
+	while (tem < 0.0) {
+		tem++;
 	}
+	if (abs(tem) < 0.000001) tem = 0.0;
+	return tem;
 }
 
 double vect3Ddot(vect3D vec1, vect3D vec2) {
@@ -79,56 +51,4 @@ double vect3DModule(vect3D aa, vect3D bb, vect3D cc, vect3D vec) {
 	return sqrt(one);
 }
 
-void pCell::setType(int type, string eleArray[], int numArray[])
-{
-	typElement = type;
-	element = new string[type];
-	numElement = new int[type];
-	for (int i = 0;i < type;i++) {
-		element[i] = eleArray[i];
-		numElement[i] = numArray[i];
-	}
-}
-void pCell::setNum(int type, double CoordArray[])
-{
-	totalAtom = type;
-	coord = new double[3 * type];
-
-	for (int i = 0;i < 3 * type;i++) {
-		coord[i] = CoordArray[i];
-	}
-}
-
-
-void pCell::printCell()
-{
-	for (int i = 0;i < typElement;i++) {
-		std::cout << element[i] << ": " << numElement[i] << "\n";
-	}
-	cout << "Total atoms: " << totalAtom << "\n";
-	cout << fixed << showpoint << setprecision(4);
-	int j;
-	for (int i = 0;i < totalAtom;i++) {
-		j = i * 3;
-		cout << coord[j] << coord[j + 1] << coord[j + 2] << "\n";
-	}
-}
-
-void NPU::setVerticePos(int num, vect3D Pos[]) {
-	verticePos = new vect3D[num];
-	vPos =new vect3D[num];
-	vCharge = new double[num];
-	for (int i = 0;i < num;i++) {
-		verticePos[i] = Pos[i];
-	}
-}
-
-void NPU::setVPos(int index, vect3D inPos) {
-	vPos[index] = inPos;
-}
-vect3D pCell::getCoord(int ID) {
-	int i = 3 * ID;
-	vect3D pickCoord(coord[i], coord[i + 1], coord[i + 2]);
-	return pickCoord;
-}
 
